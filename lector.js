@@ -94,16 +94,6 @@
   window.rTheme = rTheme;
   window.rIndent = rIndent;
 
-  // ---------------------------------------------------------------
-  // MODO A — EMBEBIDO EN LA ENTRADA (recomendado, mejor SEO):
-  //   El capítulo ya está escrito directamente dentro de #chapter-text
-  //   en el HTML de la entrada. No hay ?cap en la URL. No se hace fetch,
-  //   solo se muestra el contenido tal cual.
-  //
-  // MODO B — PÁGINA LECTORA ÚNICA (opcional):
-  //   La URL trae ?cap=ETIQUETA. Se busca esa entrada por su etiqueta
-  //   vía el feed JSON de Blogger y se inyecta el contenido.
-  // ---------------------------------------------------------------
   const loadingEl = document.getElementById('chapter-loading');
   const errorEl = document.getElementById('chapter-error');
   const contentEl = document.getElementById('chapter-text');
@@ -119,10 +109,8 @@
   }
 
   if (!cap) {
-    // Modo embebido: el contenido ya está en el HTML, no se toca nada.
     if (contentEl) contentEl.style.display = 'block';
   } else {
-    // Modo página lectora: se busca el capítulo por etiqueta.
     if (loadingEl) loadingEl.style.display = 'block';
     if (contentEl) contentEl.style.display = 'none';
 
@@ -154,24 +142,6 @@
       });
   }
 
-  // ---------------------------------------------------------------
-  // NAVEGACIÓN AUTOMÁTICA ANTERIOR/SIGUIENTE POR ETIQUETA
-  // En la entrada, en vez de escribir los enlaces a mano, pon:
-  //   <div data-chapter-nav="novela-titulo"></div>
-  // Todos los capítulos de esa novela deben compartir la misma etiqueta.
-  // El script ubica la entrada actual dentro de esa etiqueta (ordenada
-  // cronológicamente) y arma los enlaces Anterior/Siguiente solo.
-  // ---------------------------------------------------------------
-  // ---------------------------------------------------------------
-  // NAVEGACIÓN AUTOMÁTICA ANTERIOR/SIGUIENTE POR ETIQUETA NUMERADA
-  // En la entrada, pon:
-  //   <div data-chapter-nav="novela-titulo"></div>
-  // Y ponle a la entrada DOS etiquetas:
-  //   - "novela-titulo"  (compartida por todos los capítulos de la novela)
-  //   - "cap-006"        (única por capítulo, con el número de orden)
-  // El orden lo define el número de "cap-N", NO la fecha de publicación,
-  // así que puedes editar o reprogramar capítulos sin romper la navegación.
-  // ---------------------------------------------------------------
   const navEls = document.querySelectorAll('[data-chapter-nav]');
   if (navEls.length) {
     const seriesLabel = navEls[0].getAttribute('data-chapter-nav');
@@ -184,7 +154,6 @@
         const canonicalTag = document.querySelector('link[rel="canonical"]');
         const currentUrl = (canonicalTag ? canonicalTag.href : location.href).split('?')[0].split('#')[0];
 
-        // Mapa número de capítulo -> url, + detecta el número del capítulo actual
         const byNumber = {};
         let currentN = null;
 
@@ -195,7 +164,7 @@
 
           const cats = e.category || [];
           const capCat = cats.find(c => /^cap-\d+$/.test(c.term));
-          if (!capCat) return; // esta entrada no tiene etiqueta numerada, se ignora
+          if (!capCat) return; 
 
           const n = parseInt(capCat.term.replace('cap-', ''), 10);
           byNumber[n] = url;
