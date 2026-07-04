@@ -70,7 +70,7 @@
   box-sizing: border-box;
   flex-grow: 1;
 }
-#chapter-text p { margin-bottom:1.4em; text-align:justify; hyphens:auto; color: var(--text) !important; }
+#chapter-text p { margin-bottom:1.4em; text-align:left; hyphens:auto; color: var(--text) !important; }
 .scene-break { text-align:center; color:var(--muted); margin:2em 0; letter-spacing:.5em; font-size:.9em; }
 
 #chapter-loading, #chapter-error {
