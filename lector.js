@@ -28,7 +28,7 @@
         </div>
         <div class="tg">
           <span class="tl">Sangria</span>
-          <button class="tb" id="rh" onclick="rIndent()">1.25 cm</button>
+          <button class="tb" id="rh" onclick="rIndent()">-</button>
         </div>
       </div>
       <div id="chapter-loading" style="display:none;">Cargando capítulo…</div>

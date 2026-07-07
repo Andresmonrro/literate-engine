@@ -39,7 +39,9 @@
 #reader-wrap.size-large  #chapter-text { font-size:22px; line-height:2.0; }
 
 #reader-wrap.indent-on #chapter-text p {
-  text-indent: 1.25cm;
+  text-indent: 1.5em;
+  margin-top: 0;
+  margin-bottom: 0;
 }
 
 #r-toolbar {
