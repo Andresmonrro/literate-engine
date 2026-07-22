@@ -1,0 +1,205 @@
+<style>
+#dlw-wrap {
+  --bg: #141414;
+  --text: #e8e4de;
+  --muted: #888;
+  --border: #333;
+  --accent: #c49a6c;
+  --btn-hover: #2a2a2a;
+  color-scheme: dark;
+
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin: 20px 0;
+}
+
+#dlw-status {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+#dlw-status.hidden {
+  display: none;
+}
+
+.dlw-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 24px;
+  user-select: none;
+}
+
+.dlw-titulo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: .02em;
+  color: var(--text);
+}
+
+.dlw-meta {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--muted);
+  font-family: 'Trebuchet MS', sans-serif;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+.dlw-lista {
+  margin: 0;
+  padding: 0 24px 22px;
+}
+
+.dlw-item {
+  border-top: 1px dotted var(--border);
+}
+
+.dlw-item:first-child {
+  border-top: none;
+}
+
+.dlw-row {
+  display: block;
+  padding: 9px 0;
+}
+
+.dlw-link {
+  display: block;
+  color: var(--text);
+  text-decoration: none;
+  font-size: 15.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  transition: color .15s ease;
+}
+
+.dlw-link:hover {
+  color: var(--accent);
+}
+
+.dlw-vacia,
+.dlw-error {
+  padding: 10px 24px 22px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 600px) {
+  .dlw-header {
+    padding: 14px 16px;
+  }
+  .dlw-lista {
+    padding: 0 16px 18px;
+  }
+  .dlw-titulo {
+    font-size: 17px;
+  }
+}
+</style>
+
+<div id="dlw-wrap">
+  <div class="dlw-header">
+    <span class="dlw-titulo">Descargas</span>
+    <span class="dlw-meta"><span class="dlw-count">…</span></span>
+  </div>
+  <div id="dlw-status">Cargando lista de archivos…</div>
+  <div class="dlw-lista" id="dlw-lista" style="display:none"></div>
+</div>
+
+<script>
+(function () {
+  // ===
+  var FOLDER_ID = "1N7p-BNCzvF-ZDFRddaHSbcLqit5gPzv8";
+  var API_KEY = "AIzaSyDVl1fbsW0AVXavpyNTXGdsleSDpDsSNhU";
+  var TITULO = "";
+
+  var wrap = document.getElementById("dlw-wrap");
+  var statusEl = document.getElementById("dlw-status");
+  var listEl = document.getElementById("dlw-lista");
+  var countEl = wrap.querySelector(".dlw-count");
+  var tituloEl = wrap.querySelector(".dlw-titulo");
+  if (tituloEl) tituloEl.textContent = TITULO;
+
+  function enlaceDescarga(fileId) {
+    return "https://drive.google.com/uc?export=download&id=" + fileId;
+  }
+
+  function escapeHtml(str) {
+    var d = document.createElement("div");
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function render(archivos) {
+    statusEl.classList.add("hidden");
+    listEl.style.display = "";
+
+    if (archivos.length === 0) {
+      countEl.textContent = "0 archivos";
+      listEl.innerHTML = '<div class="dlw-vacia">Todavía no hay archivos en esta carpeta.</div>';
+      return;
+    }
+
+    countEl.textContent = archivos.length + (archivos.length === 1 ? " archivo" : " archivos");
+
+    listEl.innerHTML = archivos.map(function (f) {
+      return (
+        '<div class="dlw-item"><div class="dlw-row">' +
+          '<a class="dlw-link" href="' + enlaceDescarga(f.id) + '" title="' + escapeHtml(f.name) + '" rel="nofollow noopener">' + escapeHtml(f.name) + "</a>" +
+        "</div></div>"
+      );
+    }).join("");
+  }
+
+  function cargar(pageToken, acumulado) {
+    acumulado = acumulado || [];
+    var params = new URLSearchParams({
+      q: "'" + FOLDER_ID + "' in parents and trashed = false",
+      fields: "nextPageToken, files(id, name, mimeType)",
+      key: API_KEY,
+      pageSize: "1000"
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    fetch("https://www.googleapis.com/drive/v3/files?" + params.toString())
+      .then(function (res) {
+        if (!res.ok) {
+          return res.json().then(function (err) {
+            throw new Error(
+              (err.error && err.error.message) ||
+                "No se pudo cargar la carpeta. PS car KEy"
+            );
+          });
+        }
+        return res.json();
+      })
+      .then(function (data) {
+        var nuevos = acumulado.concat(data.files || []);
+        if (data.nextPageToken) {
+          cargar(data.nextPageToken, nuevos);
+        } else {
+          render(nuevos);
+        }
+      })
+      .catch(function (err) {
+        countEl.textContent = "error";
+        statusEl.classList.add("hidden");
+        listEl.style.display = "";
+        listEl.innerHTML = '<div class="dlw-error">No se pudo cargar esta carpeta: ' + escapeHtml(err.message) + "</div>";
+      });
+  }
+
+  cargar(null, []);
+})();
+</script>
